@@ -7,7 +7,7 @@ import './board.css'
 function Board() {
     const game = useRef(new Game(8)).current
     const [currPlayer, setCurrPlayer] = useState<ChessColor>(game.currentPlayer())
-    game.addNextMoveCallback(setCurrPlayer)
+    game.addCurrentPlayerCallback(setCurrPlayer)
     const [chessCount, setChessCount] = useState(game.getChessCount())
     game.addCountCallback(setChessCount)
 

@@ -78,15 +78,21 @@ class Game {
     _currPLayer: ChessColor
     _chessCount: number[]
     _cbBoard: Set<(color: ChessColor)=>any>[][]
-    _cbNextMove: Set<(player: ChessColor)=>any>
+    _cbCurrPlayer: Set<(player: ChessColor)=>any>
     _cbCount: Set<(count: number[])=>any>
     _validMove: ValidMove[]
+
+    /**
+     * Constructs a new instance of the game.
+     *
+     * @param {number} size - Number of rows/columns in the game board.
+     */
     constructor(size: number) {
         this.size = size
         this.board = Array.from({length: size}, () => new Array(size).fill(ChessColor.None))
         this._cbBoard = Array.from({length: size}, () => Array.from({length: size}, () => new Set<(color: ChessColor)=>any>()))
         this._currPLayer = ChessColor.Black
-        this._cbNextMove = new Set<(player: ChessColor)=>any>()
+        this._cbCurrPlayer = new Set<(player: ChessColor)=>any>()
 
         const m = size/2
         this.board[m-1][m-1] = ChessColor.White
@@ -106,6 +112,11 @@ class Game {
         this._validMove[ChessColor.White.valueOf()].set(m-1, m+1, 6, 2)
     }
 
+    /**
+     * Get the current player color.
+     *
+     * @return {ChessColor} The current player color.
+     */
     currentPlayer(): ChessColor {
         return this._currPLayer
     }
@@ -114,7 +125,14 @@ class Game {
         return 1 - color.valueOf()
     }
 
-    play(x: number, y: number) {
+    /**
+     * A function that handles the logic of playing a move at the specified position.
+     *
+     * @param {number} x - The x-coordinate of the move. Starting from 0 as the top row.
+     * @param {number} y - The y-coordinate of the move. Starting from 0 as the left most column.
+     * @return {boolean} Returns true if the play was successful, false otherwise.
+     */
+    play(x: number, y: number): boolean {
         const color = this._currPLayer
         const moves = this._validMove[color.valueOf()].get(x, y)
         if (moves===undefined) {
@@ -134,23 +152,39 @@ class Game {
             })
         })
         this._currPLayer = Game.opponent(this._currPLayer)
-        this._cbNextMove.forEach(cb => cb(this.currentPlayer()))
+        this._cbCurrPlayer.forEach(cb => cb(this.currentPlayer()))
         this._cbCount.forEach(cb => cb(this._chessCount))
         return true
     }
 
-    skipPlay() {
+    /**
+     * A function that switches the current player to the opponent when there are no valid next moves.
+     *
+     * @return {boolean} Returns false if there are still valid next moves, true otherwise.
+     */
+    skipPlay(): boolean {
         if (this.nNextMoves()>0) {
             return false
         }
         this._currPLayer = Game.opponent(this._currPLayer)
-        this._cbNextMove.forEach(cb => cb(this.currentPlayer()))
+        this._cbCurrPlayer.forEach(cb => cb(this.currentPlayer()))
+        return true
     }
 
+    /**
+     * Get the number of valid next moves.
+     *
+     * @return {number} The number of next moves available.
+     */
     nNextMoves(): number {
         return this._validMove[this._currPLayer.valueOf()].size()
     }
 
+    /**
+     * Checks if the game has ended by verifying if both the black and white players have no valid moves left.
+     *
+     * @return {boolean} Returns true if the game has ended, false otherwise.
+     */
     ended(): boolean {
         return this._validMove[ChessColor.Black.valueOf()].size()===0
             && this._validMove[ChessColor.White.valueOf()].size()===0
@@ -211,26 +245,69 @@ class Game {
         return 0
     }
 
+    /**
+     * Adds a callback function which will be called when the chess on specified position changes.
+     *
+     * @param {number} x - The x-coordinate of the chess board.
+     * @param {number} y - The y-coordinate of the chess board.
+     * @param {(color: ChessColor) => any} cb - The callback function which receives the color of the chess at the specified position.
+     */
     addChessCallback(x: number, y: number, cb: (color: ChessColor)=>any) {
         this._cbBoard[x][y].add(cb)
     }
 
-    isValidMove(x: number, y: number, color: ChessColor) {
+    /**
+     * Checks if a move at the specified position is valid for the given color.
+     *
+     * @param {number} x - The x-coordinate of the move.
+     * @param {number} y - The y-coordinate of the move.
+     * @param {ChessColor} color - The color of the player making the move.
+     * @return {boolean} Returns true if the move is valid, false otherwise.
+     */
+    isValidMove(x: number, y: number, color: ChessColor): boolean {
         return this._validMove[color.valueOf()].get(x, y) !== undefined
     }
 
+    /**
+     * Adds a callback function which will be called when the validity of a move at the specified position changes.
+     *
+     * @param {number} x - The x-coordinate of the chess board.
+     * @param {number} y - The y-coordinate of the chess board.
+     * @param {ChessColor} color - The color of the chess piece.
+     * @param {(val: boolean) => any} cb - The callback function which receives the validity of the color at the specified position.
+     * @return {void}
+     */
     addValidCallback(x: number, y: number, color: ChessColor, cb: (val: boolean)=>any) {
         this._validMove[color.valueOf()].addCallback(x, y, cb)
     }
 
-    addNextMoveCallback(cb: (color: ChessColor)=>any) {
-        this._cbNextMove.add(cb)
+    /**
+     * Adds a callback function which will be called when the current player changes.
+     *
+     * @param {function} cb - The callback function which receives the color of the new current player.
+     * @return {void}
+     */
+    addCurrentPlayerCallback(cb: (color: ChessColor)=>any) {
+        this._cbCurrPlayer.add(cb)
     }
 
-    getChessCount() {
+    /**
+     * Retrieves the count of chess pieces for each color.
+     *
+     * @return {number[]} An array containing the count of chess pieces for each color, indexed by the int value of ChessColor.
+     */
+    getChessCount(): number[] {
         return this._chessCount
     }
 
+    /**
+     * Adds a callback function to be called when the counts of chess pieces changes.
+     *
+     * @param {function} cb - The callback function that receives the updated count of chess pieces.
+     *                       The function should accept an array of numbers representing the count of chess pieces
+     *                       for each color, indexed by the int value of ChessColor.
+     * @return {void}
+     */
     addCountCallback(cb: (count: number[])=>any) {
         this._cbCount.add(cb)
     }
