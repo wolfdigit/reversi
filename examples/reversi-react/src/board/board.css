@@ -1,0 +1,32 @@
+.board {
+    display: flex;
+    flex-direction: column;
+    background: #ffe864;
+    vertical-align: middle;
+}
+
+.board .row {
+    display: flex;
+    flex-direction: row;
+}
+
+.chess-color {
+    vertical-align: middle;
+    text-align: center;
+    font-size: 36px;
+}
+
+.cell {
+    display: inline-block;
+    line-height: 2rem;
+    height: 2rem;
+    width: 2rem;
+    border: black 1px solid;
+    padding: 0.5rem;
+}
+
+.cell.valid {
+    cursor: pointer;
+    background-color: gray;
+    opacity: 0.5;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "reversi",
+  "version": "1.0.0",
+  "description": "A reversi chess game engine",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "link": "cd dist && npm link"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wolfdigit/reversi.git"
+  },
+  "author": "Hsin-yi Ho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wolfdigit/reversi/issues"
+  },
+  "homepage": "https://github.com/wolfdigit/reversi#readme",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  }
+}
