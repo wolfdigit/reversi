@@ -39,6 +39,9 @@ npm run build
 ```
 The static frontend files will be in `dist` folder
 
+## Demo page
+A live demo page is available at http://page.wolfdigit.csie.org/reversi/
+
 ## Package Usage
 This package exports 2 entities along with their type definitions:
 * (default export) class `Game`: The main game engine
